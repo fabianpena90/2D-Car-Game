@@ -1,135 +1,125 @@
-// Event Listener
-const startBtn = document.querySelector('#start-button');
-startBtn.addEventListener('click', startGame);
+const canvas = document.querySelector("canvas");
+canvas.width = 500;
+canvas.height = 700;
+const ctx = canvas.getContext("2d");
+const carImg = new Image();
+carImg.src = "/images/car.png";
+const roadImg = new Image();
+roadImg.src = "/images/road.png";
+let id = null
+let score = 0
+class Car {
+  constructor(img, x, y, w, h) {
+    this.img = img;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+  }
+  drawCar() {
+    ctx.drawImage(this.img, this.x, this.y, this.w, this.h);
+  }
+}
 
-//Function Start Game
-function startGame() {
-  // console.log('clicked')
+let miniCooper = new Car(carImg, 250, 600, 50, 100);
 
-  // Canvas
-  const canvas = document.querySelector('canvas');
-  canvas.width = window.innerWidth
-  canvas.height = window.innerHeight
-  canvas.width = 500
-  canvas.height = 700
-  const ctx = canvas.getContext('2d')
-  let x = 0
-  let y = 0
-  let id = null
-  let score = 0
+let bullets = []
 
-  // Adding Images
-  const imgTrack = new Image();
-  imgTrack.src = '/images/road.png'
+window.onkeydown = function (event) {
+  console.log(event.key);
+  switch (event.key) {
+    case "ArrowLeft":
+      miniCooper.x -= 7;
+      break;
+    case "ArrowRight":
+      miniCooper.x += 7;
+      break;
+    case " ":
+        bullets.push(new Bullet(miniCooper.x, miniCooper.y, 10, 10))
+        break;
+  }
+};
 
-  const imgCar = new Image();
-  imgCar.src = '/images/car.png'
-
-  // Classes
-  class RaceTrack {
-    constructor(img, x, y, w, h) {
-      this.img = img;
-      this.x = x;
-      this.y = y;
-      this.w = w;
-      this.h = h
-    }
-
+class Obstacle {
+  constructor(x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.color = "#"+((1<<24)*Math.random()|0).toString(16);
   }
 
-  class Car {
-    constructor(img, x, y, w, h) {
-      this.img = img;
-      this.x = x;
-      this.y = y;
-      this.w = w;
-      this.h = h
+  drawObstacle = () => {
+    ctx.fillStyle = this.color;
+    ctx.fillRect(this.x, this.y++, this.w, this.h);
+  };
+  checkCollision = () => {
+    if (miniCooper.x < this.x + this.w &&
+      miniCooper.x + miniCooper.w > this.x &&
+      miniCooper.y < this.y + this.h &&
+      miniCooper.y + miniCooper.h > this.y) {
+      window.cancelAnimationFrame(id)
+      alert(score)
     }
-  }
-
-  class Obstacle {
-    constructor(x, y, w, h) {
-      this.x = x;
-      this.y = y;
-      this.w = w;
-      this.h = h;
-    }
-    drawRec() {
-      ctx.fillStyle = 'red'
-      // this.y++
-      ctx.fillRect(this.x, this.y++, this.w, this.h)
-    }
-    detectCollision() {
-      if (car.x < this.x + this.w &&
-        car.x + car.w > this.x &&
-        car.y < this.y + this.h &&
-        car.y + car.h > this.y) {
-        cancelAnimationFrame(id)
-        console.log('Collision')
-        alert(score++)
+    for(let bullet of bullets){
+      if (bullet.x < this.x + this.w &&
+        bullet.x + bullet.w > this.x &&
+        bullet.y < this.y + this.h &&
+        bullet.y + bullet.h > this.y) {
+        obstacless.splice(obstacless.indexOf(this), 1)
+        bullets.splice(bullets.indexOf(bullet), 1)
       }
     }
   }
-
-  class Bullet {
-    constructor(x, y, w, h) {
-      this.x = x;
-      this.y = y;
-      this.w = w;
-      this.h = h;
-    }
-  }
-
-  //  Creating Objects
-  const raceTrack = new RaceTrack(imgTrack, 0, 0, canvas.width, canvas.height)
-  const car = new Car(imgCar, 225, 580, 50, 100)
-  const obstacles = [new Obstacle(100, 20, 100, 20), new Obstacle(325, 10, 100, 20)]
-
-  // Draw Race Track Function
-  function drawRaceTrack() {
-    ctx.drawImage(raceTrack.img, raceTrack.x, raceTrack.y, raceTrack.w, raceTrack.h)
-  }
-
-  function drawCar() {
-    ctx.drawImage(car.img, car.x, car.y, car.w, car.h)
-  }
-
-  function drawObstacles() {
-    obstacles.forEach(function (obstacle) {
-      obstacle.drawRec()
-      obstacle.detectCollision()
-    })
-  }
-
-  const randomObj = () => Math.random() * canvas.width
-
-  setInterval(() => {
-    obstacles.push(new Obstacle(randomObj(), 10, 100, 20))
-  }, 2000);
-
-  // Keyboard Function
-  window.onkeydown = function (e) {
-    // console.log(e.key)
-    switch (e.key) {
-      case 'ArrowLeft':
-        car.x -= 20
-        break;
-      case 'ArrowRight':
-        car.x += 20
-        break;
-    }
-
-  }
-
-  // Animation Function
-  function animate() {
-    id = requestAnimationFrame(animate)
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    drawRaceTrack()
-    drawCar()
-    drawObstacles()
-    score++
-  }
-
-  animate()
 }
+
+class Bullet {
+  constructor(x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+  }
+  drawBullet(){
+    ctx.fillStyle = "black"
+    ctx.fillRect(this.x, this.y, this.w, this.h)
+    this.y--
+  }
+}
+
+let obstacless = [
+  new Obstacle(100, 20, 100, 20),
+  new Obstacle(200, 50, 100, 20),
+  new Obstacle(0, 80, 100, 20),
+];
+let random = () => Math.floor(Math.random() * canvas.width);
+setInterval(function () {
+  obstacless.push(new Obstacle(random(), 0, 100, 20));
+}, 1000);
+
+var rect1 = { x: 5, y: 5, width: 50, height: 50 }
+var rect2 = { x: 20, y: 10, width: 10, height: 10 }
+
+function collision() {
+
+}
+
+// collision detected!
+
+
+function animate() {
+  id = window.requestAnimationFrame(animate);
+  console.log("gameloop");
+  ctx.drawImage(roadImg, 0, 0, canvas.width, canvas.height);
+  miniCooper.drawCar();
+  for (obs of obstacless) {
+    obs.drawObstacle();
+    obs.checkCollision();
+  }
+  for (bullet of bullets) {
+    bullet.drawBullet();
+    //bullet.checkCollision();
+  }
+score++
+}
+animate();
